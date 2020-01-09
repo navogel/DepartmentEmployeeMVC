@@ -9,7 +9,13 @@ namespace DepartmentEmployees2.Models
     public class Department
     {
         public int Id { get; set; }
-        [Display(Name = "Department Name")]
+
+        [Required(ErrorMessage = "Department Name is required")]
+        [StringLength(10, MinimumLength = 2, ErrorMessage = "More than 10 no bueno, but more than 2 yo")]
+
+
+
         public string Name { get; set; }
+        public List<Employee> Employees { get; set; } = new List<Employee>();
     }
 }
