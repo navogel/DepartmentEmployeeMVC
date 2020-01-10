@@ -7,6 +7,8 @@ using DepartmentEmployees2.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using DepartmentEmployees2.Models.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DepartmentEmployees2.Controllers
 {
@@ -102,8 +104,17 @@ namespace DepartmentEmployees2.Controllers
         // GET: Employees/Create
         public ActionResult Create()
         {
-            var employee = new Employee();
-            return View();
+            var departments = GetDepartments().Select(d => new SelectListItem
+            {
+                Text = d.Name,
+                Value = d.Id.ToString()
+            }).ToList();
+            var viewModel = new EmployeeViewModel
+            {
+                Employee = new Employee(),
+                Departments = departments
+            };
+            return View(viewModel);
         }
 
         // POST: Employees/Create
@@ -144,6 +155,12 @@ namespace DepartmentEmployees2.Controllers
         // GET: Employees/Edit/5
         public ActionResult Edit(int id)
         {
+            var departments = GetDepartments().Select(d => new SelectListItem
+            {
+                Text = d.Name,
+                Value = d.Id.ToString()
+            }).ToList();
+
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
@@ -167,7 +184,13 @@ namespace DepartmentEmployees2.Controllers
                         };
 
                         reader.Close();
-                        return View(employee);
+
+                        var viewModel = new EmployeeViewModel
+                        {
+                            Employee = employee,
+                            Departments = departments
+                        };
+                        return View(viewModel);
                     }
 
                     reader.Close();
@@ -210,7 +233,7 @@ namespace DepartmentEmployees2.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
                 return View();
             }
@@ -277,5 +300,36 @@ namespace DepartmentEmployees2.Controllers
                 return View();
             }
         }
+
+        //helper method to grab department list
+        private List<Department> GetDepartments()
+            {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT ID, DeptName FROM Department";
+
+                    var reader = cmd.ExecuteReader();
+
+                    var departments = new List<Department>();
+
+                    while (reader.Read())
+                    {
+                        departments.Add(new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("DeptName"))
+                        });
+                    }
+
+                    reader.Close();
+
+                    return departments;
+                }
+            }
+            }
+
     }
 }

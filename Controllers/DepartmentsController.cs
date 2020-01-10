@@ -134,17 +134,32 @@ namespace DepartmentEmployees2.Controllers
         // GET: Departments/Create
         public ActionResult Create()
         {
+            var department = new Department();
             return View();
         }
 
         // POST: Departments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Department department)
         {
             try
             {
-                // TODO: Add insert logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Department 
+                                            (Name)
+                                            VALUES 
+                                            (@name)";
+                        cmd.Parameters.Add(new SqlParameter("@name", department.Name));
+
+                        cmd.ExecuteNonQuery();
+
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
             }
